@@ -532,7 +532,17 @@ fn demangle(module: &mut Module) {
             None => continue,
         };
         if let Ok(sym) = rustc_demangle::try_demangle(name) {
-            func.name = Some(sym.to_string());
+            let mut name = sym.to_string();
+
+            if name.chars().count() > 128 {
+                // I think this may mess up multipart characters at the boundary, but shouldn't
+                // panic.
+                name = name.chars().take(125).collect();
+
+                name.push_str("...");
+            }
+
+            func.name = Some(name);
         }
     }
 }
